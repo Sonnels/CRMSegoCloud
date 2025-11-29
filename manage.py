@@ -18,55 +18,5 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-def create_superuser_if_needed():
-    """Create superuser if running in Railway and doesn't exist"""
-    if os.getenv('RAILWAY_ENVIRONMENT'):
-        try:
-            import django
-            django.setup()
-            from django.contrib.auth import get_user_model
-            
-            User = get_user_model()
-            username = os.getenv('DJANGO_SUPERUSER_USERNAME', 'admin')
-            email = os.getenv('DJANGO_SUPERUSER_EMAIL', 'admin@segocloud.com')
-            password = os.getenv('DJANGO_SUPERUSER_PASSWORD', 'AdminSegoCloud2024!')
-            
-            if not User.objects.filter(username=username).exists():
-                User.objects.create_superuser(
-                    username=username,
-                    email=email,
-                    password=password,
-                    first_name='Admin',
-                    last_name='SegoCloud',
-                    role=User.Role.Admin,
-                    is_verified=True
-                )
-                print(f"✅ Superuser created: {username} ({email})")
-            else:
-                print(f"ℹ️  Superuser already exists: {username}")
-        except Exception as e:
-            print(f"❌ Error creating superuser: {e}")
-
-
-def collect_static_files():
-    """Force collectstatic in Railway"""
-    if os.getenv('RAILWAY_ENVIRONMENT'):
-        try:
-            import django
-            from django.core.management import execute_from_command_line
-            django.setup()
-            print("🔄 Starting collectstatic...")
-            execute_from_command_line(['manage.py', 'collectstatic', '--noinput', '--clear'])
-            print("✅ Static files collected successfully")
-        except Exception as e:
-            print(f"❌ Error collecting static files: {e}")
-
-
 if __name__ == '__main__':
     main()
-    # Force static files collection and create superuser in Railway
-    if os.getenv('RAILWAY_ENVIRONMENT'):
-        # Always collect static files when any manage.py command is run
-        if len(sys.argv) > 1 and sys.argv[1] in ['migrate', 'runserver']:
-            collect_static_files()
-        create_superuser_if_needed()

@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,17 +21,12 @@ load_env()
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-v3fu=+lkd&nirl96i@#5l*(xo0l+q%winlojg+gw4rn5d=3grt')
+SECRET_KEY = 'django-insecure-v3fu=+lkd&nirl96i@#5l*(xo0l+q%winlojg+gw4rn5d=3grt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.getenv('DEBUG') == 'True' else False
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()] or ['*']
-
-# Agregar esta configuración para CSRF
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()
-]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
 
 # Application definition
 
@@ -82,9 +76,8 @@ MIDDLEWARE = [
 if os.getenv('DEMO_MODE') == 'True':
     MIDDLEWARE.append('core.middleware.middleware.DemoModeMiddleware')
 
-# TEMPORARY: Disable WhiteNoise to test files
-# if os.getenv("WHITENOISE_CONFIG") == "True":
-#     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+if os.getenv("WHITENOISE_CONFIG") == "True":
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
     
 ROOT_URLCONF = 'core.urls'
 
@@ -131,9 +124,36 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
-}
+if os.getenv('MYSQL_DB') == 'True' and os.getenv('POSTGRES_DB') == 'False':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('MYSQL_DB_NAME'),
+            'USER': os.getenv('MYSQL_DB_USER'),
+            'PASSWORD': os.getenv('MYSQL_DB_PASSWORD'),
+            'HOST': os.getenv('MYSQL_DB_HOST'),
+            'PORT': os.getenv('MYSQL_DB_PORT'),
+        }
+    }
+elif os.getenv('POSTGRES_DB') == 'True' and os.getenv('MYSQL_DB') == 'False':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB_NAME'),
+            'USER': os.getenv('POSTGRES_DB_USER'),
+            'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
+            'HOST': os.getenv('POSTGRES_DB_HOST'), 
+            'PORT': os.getenv('POSTGRES_DB_PORT'), 
+        }
+    }
+    print(DATABASES)
+else:
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+            }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -153,25 +173,31 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
+TIME_ZONE = os.getenv('TIME_ZONE')
+
+print(f"TIME_ZONE is set to: {TIME_ZONE}")
 
 USE_I18N = True
 
 USE_TZ = True
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
+
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
+MEDIA_ROOT = os.path.join(BASE_DIR, str(os.getenv('MEDIA_ROOT')))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -179,6 +205,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user models
+
 AUTH_USER_MODEL = 'authapp.User'
 
 CKEDITOR_CONFIGS = {
@@ -188,14 +215,16 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-# TEMPORARY: Disable WhiteNoise storages
-# if os.getenv('WHITENOISE_CONFIG') == 'True':
-#     STORAGES = {
-#         "staticfiles": {
-#             "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-#         },
-#     }
 
+# white noise settings
+if os.getenv('WHITENOISE_CONFIG') == 'True':
+    STORAGES = {
+         "staticfiles": {
+              "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+         },
+    }
+    
+    
 RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
 

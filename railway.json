@@ -1,8 +1,0 @@
-{
-  "build": {
-    "builder": "NIXPACKS"
-  },
-  "deploy": {
-    "startCommand": "echo 'Starting Railway deployment...' && python manage.py migrate && echo 'Migration completed' && python manage.py collectstatic --noinput --verbosity=2 && echo 'Static files collected' && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"
-  }
-}
