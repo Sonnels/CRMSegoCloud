@@ -82,8 +82,9 @@ MIDDLEWARE = [
 if os.getenv('DEMO_MODE') == 'True':
     MIDDLEWARE.append('core.middleware.middleware.DemoModeMiddleware')
 
-if os.getenv("WHITENOISE_CONFIG") == "True":
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+# TEMPORARY: Disable WhiteNoise to test files
+# if os.getenv("WHITENOISE_CONFIG") == "True":
+#     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
     
 ROOT_URLCONF = 'core.urls'
 
@@ -187,18 +188,13 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-# WhiteNoise settings - Improved configuration
-if os.getenv('WHITENOISE_CONFIG') == 'True':
-    STORAGES = {
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-        },
-    }
-    
-    # WhiteNoise configuration
-    WHITENOISE_USE_FINDERS = True
-    WHITENOISE_AUTOREFRESH = True
-    WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'zip', 'gz', 'tgz', 'bz2', 'tbz', 'xz', 'br']
+# TEMPORARY: Disable WhiteNoise storages
+# if os.getenv('WHITENOISE_CONFIG') == 'True':
+#     STORAGES = {
+#         "staticfiles": {
+#             "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+#         },
+#     }
 
 RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
