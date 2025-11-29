@@ -48,8 +48,24 @@ def create_superuser_if_needed():
             print(f"❌ Error creating superuser: {e}")
 
 
+def collect_static_files():
+    """Force collectstatic in Railway"""
+    if os.getenv('RAILWAY_ENVIRONMENT'):
+        try:
+            import django
+            from django.core.management import execute_from_command_line
+            django.setup()
+            print("🔄 Starting collectstatic...")
+            execute_from_command_line(['manage.py', 'collectstatic', '--noinput', '--clear'])
+            print("✅ Static files collected successfully")
+        except Exception as e:
+            print(f"❌ Error collecting static files: {e}")
+
+
 if __name__ == '__main__':
     main()
-    # Create superuser after Django is ready (only in Railway)
-    if len(sys.argv) > 1 and sys.argv[1] == 'migrate':
+    # Force static files collection and create superuser (only in Railway)
+    if os.getenv('RAILWAY_ENVIRONMENT') and len(sys.argv) > 1:
+        if sys.argv[1] == 'migrate':
+            collect_static_files()
         create_superuser_if_needed()
