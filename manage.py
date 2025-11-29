@@ -64,8 +64,9 @@ def collect_static_files():
 
 if __name__ == '__main__':
     main()
-    # Force static files collection and create superuser (only in Railway)
-    if os.getenv('RAILWAY_ENVIRONMENT') and len(sys.argv) > 1:
-        if sys.argv[1] == 'migrate':
+    # Force static files collection and create superuser in Railway
+    if os.getenv('RAILWAY_ENVIRONMENT'):
+        # Always collect static files when any manage.py command is run
+        if len(sys.argv) > 1 and sys.argv[1] in ['migrate', 'runserver']:
             collect_static_files()
         create_superuser_if_needed()
