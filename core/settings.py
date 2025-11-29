@@ -1,9 +1,13 @@
 from pathlib import Path
 import os
+import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# --------------------------------
+# Load .env file (local only)
+# --------------------------------
 def load_env():
     env_file = os.path.join(BASE_DIR, '.env')
     if os.path.exists(env_file):
@@ -11,24 +15,22 @@ def load_env():
             for line in file:
                 line = line.strip()
                 if line and not line.startswith("#"):
-                    key, value = line.split('=')
+                    key, value = line.split('=', 1)
                     os.environ[key] = value
 
-# Load environment variables from the .env file
 load_env()
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+# --------------------------------
+# Core Django Settings
+# --------------------------------
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-v3fu=+lkd&nirl96i@#5l*(xo0l+q%winlojg+gw4rn5d=3grt'
+SECRET_KEY = os.getenv('SECRET_KEY', 'insecure-key')
+DEBUG = os.getenv('DEBUG') == 'True'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.getenv('DEBUG') == 'True' else False
-
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
-
-# Application definition
+# --------------------------------
+# Installed Apps
+# --------------------------------
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -37,8 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'django_recaptcha',
     'ckeditor',
+
+    # Your apps
     'apps.lang',
     'apps.settings',
     'apps.homepage',
@@ -62,6 +67,10 @@ INSTALLED_APPS = [
     'apps.analytics',
 ]
 
+# --------------------------------
+# Middleware
+# --------------------------------
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -78,8 +87,12 @@ if os.getenv('DEMO_MODE') == 'True':
 
 if os.getenv("WHITENOISE_CONFIG") == "True":
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    
+
 ROOT_URLCONF = 'core.urls'
+
+# --------------------------------
+# Templates
+# --------------------------------
 
 TEMPLATES = [
     {
@@ -92,6 +105,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                # Custom context processors
                 'core.context_processors.website_settings_context',
                 'core.context_processors.promo_banner_context',
                 'core.context_processors.seo_settings_context',
@@ -113,118 +128,91 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Email Setup
+# --------------------------------
+# Email
+# --------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = os.getenv('EMAIL_PORT')
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER') 
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == "True"
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+# --------------------------------
+# DATABASE (Railway DATABASE_URL)
+# --------------------------------
 
-if os.getenv('MYSQL_DB') == 'True' and os.getenv('POSTGRES_DB') == 'False':
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('MYSQL_DB_NAME'),
-            'USER': os.getenv('MYSQL_DB_USER'),
-            'PASSWORD': os.getenv('MYSQL_DB_PASSWORD'),
-            'HOST': os.getenv('MYSQL_DB_HOST'),
-            'PORT': os.getenv('MYSQL_DB_PORT'),
-        }
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-elif os.getenv('POSTGRES_DB') == 'True' and os.getenv('MYSQL_DB') == 'False':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('POSTGRES_DB_NAME'),
-            'USER': os.getenv('POSTGRES_DB_USER'),
-            'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
-            'HOST': os.getenv('POSTGRES_DB_HOST'), 
-            'PORT': os.getenv('POSTGRES_DB_PORT'), 
-        }
-    }
-    print(DATABASES)
 else:
+    print("⚠️ WARNING: No DATABASE_URL set. Using SQLite.")
     DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-            }
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
 
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+print("DATABASE CONFIG →", DATABASES)
+
+# --------------------------------
+# Passwords
+# --------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-
+# --------------------------------
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
+# --------------------------------
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = os.getenv('TIME_ZONE')
-
-print(f"TIME_ZONE is set to: {TIME_ZONE}")
-
+TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
 USE_I18N = True
-
 USE_TZ = True
 
+print(f"TIME_ZONE set to → {TIME_ZONE}")
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+# --------------------------------
+# Static / Media Files
+# --------------------------------
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, str(os.getenv('MEDIA_ROOT')))
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
+
+if os.getenv("WHITENOISE_CONFIG") == "True":
+    STORAGES = {
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+
+# --------------------------------
+# Misc Settings
+# --------------------------------
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Custom user models
-
 AUTH_USER_MODEL = 'authapp.User'
 
 CKEDITOR_CONFIGS = {
     'default': {
         'height': '100%',
         'width': '100%',
-    },
+    }
 }
 
-
-# white noise settings
-if os.getenv('WHITENOISE_CONFIG') == 'True':
-    STORAGES = {
-         "staticfiles": {
-              "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-         },
-    }
-    
-    
 RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
 

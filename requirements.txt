@@ -1,4 +1,4 @@
-# Core
+# Core Django / Server
 Django>=4.2,<4.3
 gunicorn
 whitenoise==6.5.0
@@ -8,7 +8,7 @@ Pillow
 
 # Database drivers
 psycopg2-binary
-mysqlclient
+# mysqlclient   # Uncomment only if using MySQL
 
 # Payments
 razorpay
@@ -23,9 +23,11 @@ requests
 urllib3==2.2.1
 openai==0.28.0
 unidecode
+cryptography
 
 # Django addons
 django-ckeditor==6.3.2
 django_user_agents
 django-imagekit
 django-recaptcha
+dj-database-url
