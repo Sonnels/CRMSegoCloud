@@ -11,7 +11,7 @@ stripe
 django-ckeditor==6.3.2
 django_user_agents
 django-imagekit
-urllib3==1.25.11
+urllib3==1.26.18
 whitenoise==6.5.0
 unidecode
 django-recaptcha
