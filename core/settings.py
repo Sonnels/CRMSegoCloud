@@ -152,8 +152,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -165,10 +163,8 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
@@ -182,7 +178,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, os.getenv('MEDIA_ROOT', 'media'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user models
-
 AUTH_USER_MODEL = 'authapp.User'
 
 CKEDITOR_CONFIGS = {
@@ -192,16 +187,19 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-
-# white noise settings
+# WhiteNoise settings - Improved configuration
 if os.getenv('WHITENOISE_CONFIG') == 'True':
     STORAGES = {
-         "staticfiles": {
-              "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-         },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
     }
     
-    
+    # WhiteNoise configuration
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = True
+    WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'zip', 'gz', 'tgz', 'bz2', 'tbz', 'xz', 'br']
+
 RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
 
