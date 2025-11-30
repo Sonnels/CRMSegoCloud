@@ -1,4 +1,4 @@
--r base.txt
+git-r base.txt
 django
 twilio
 Pillow
